@@ -1,0 +1,74 @@
+gff Version : 0.02b                                     written by: Thomas Koch
+
+Graphisches Fido Frontend fuer Linux.                              (30.11.1998)
+
+Zum Werdegang:
+Da ich es leid war mein Fido System staendig per Kommandozeile zu bedienen, 
+habe ich kurzerhand ein Frontend dafuer geschrieben. Das Frontend ist ein
+Perl Script und benutzt das Curses Modul von William Setzer
+ 
+Tips / Tricks / Vorschlaege/ Bugs an:  
+
+Thomas Koch@2:2437/530 oder
+no-return@gmx.net
+
+Achso, nochwas: ich garantiere fuer Nichts, ausser das dieses Programm Platz
+auf der Festplatte einnimmt.
+
+
+Installation:
+-------------
+
+- als root einloggen
+
+- die Datei Curses-1.02.tar.gz in ein beliebiges Verzeichniss kopieren
+  und das Curses Modul kompilieren
+
+z.b.
+
+$ cp Curses-1.02 /tmp
+$ cd /tmp
+$ tar xvzf Curses-1.02.tar.gz
+
+$ cd Curses-1.02.tar.gz
+
+$ perl Makefile.PL
+$ make
+$ make install
+
+Wenn das alles glatt ging, ist das Curses Modul installiert.
+
+
+Als naechstes wird gff selbst installiert:
+
+- die Dateien gff und gff.cfg in die gewuenschten Verzeichnisse 
+  kopieren
+
+- die Datei gff editieren und die Zeilen 1 und 14 entsprechend aendern
+
+- gff.cfg den Systemgegebenheiten anpassen 
+  Die Konfigurationsdatei ist noch nicht kommentiert, ich hoffe aber 
+  das die Bezeichner ausreichend transparent sind.
+
+
+Damit ifcico seine Meldungen seperat in ein File loggt, ist noch folgende
+Modifikation an der /etc/syslog.conf notwendig:
+
+local0.*	/var/log/iflog
+
+
+Um sicherzustellen, dass gff eingehende Anrufe korrekt erkennt, empfehle ich 
+noch folgende Einstellungen:
+
+/etc/mgetty+sendfax
+
+/FIDO/  fido  fido  /fido/bin/callin @
+
+  
+/fido/bin/callin
+
+#!/bin/bash
+/usr/bin/logger -p local0.info Eingehender Anruf...
+/fido/bin/ifcico -I/fido/etc/config.ifcico
+
+      
