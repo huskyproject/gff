@@ -5,33 +5,25 @@ use Curses;
 # Idee  : 11.11.1998 (beim Schreiben des x-ten shell Scriptes fuer ifcico)
 # Beginn: 13.11.1998 
 # 
-# 27.11.98 v0.01b   (um 03:42)
+# 27.11.98 v0.01b   (03:42)
 # 30.11.98 v0.02b   (20:23)     Announce in der LINUX.DEVELOP.GER
+# 02.01.99 v0.03b   (09:35)  
 #
 # Bugs / Tips / Anregungen / Vorschlaege an: 
 # Thomas Koch@2:2437/530 oder
 # no-return@gmx.net
 #  
 ###############################################################################
-# Pfad der Konfigurationsdatei                                                #
-$config        = "/fido/etc/gff.cfg";                                         #
+# Spezielle Variablen. Vorsichtig!! Nicht veraendern!! DON'T CHANGE IT!!      #
 #                                                                             #
-###############################################################################
-#
-###############################################################################
-# Spezielle Variablen, vorsichtig!! Nicht veraendern!!                        #
-# DON'T CHANGE IT!!                                                           #
-#                                                                             #
-$logfilerl  = "1";                                                            #
-$lcalls     = "300";                                                          #
-$debugmode  = "jup";                                                          #
-$zz=0;                                                                        #
-$fehler=0;                                                                    #
-$dley=10;
+$logfilerl = "1"; $lcalls = "300"; $debugmode  = "noe"; $fehler=0; $dley=3;   #                                                                             #
 #                                                                             #
 ###############################################################################
 ###############################################################################                                                                                                                                            
-                                                                                                                                                                                   $version="0.02b";
+                                                                                                                                                                                   
+$version="0.03b";
+$rdatum="02.01.1999";
+
 #
 
 ###############################################################################
@@ -39,163 +31,128 @@ $dley=10;
 
 sub schaumamal {
 
-if($_[1] =~ /r/) {
-  if( -r "$_[0]") { $ok=1; } 
-    else {
-    print "$_[0] ist nicht lesbar!\n"; 
-    $fehler="1";
+if($_[0] ne "") {
+
+  if($_[1] =~ /r/) {
+    if( -r "$_[0]") { $ok=1; } 
+      else {
+      print "$_[0] ist nicht lesbar!\n"; 
+      $fehler="1";
+    }
+  }
+
+  if($_[1] =~ /x/) {
+    if( -x "$_[0]") { $ok=1; } 
+      else {
+      print "$_[0] ist nicht ausfuehrbar!\n"; 
+      $fehler="1";
+    }
+  }
+
+  if($_[1] =~ /d/) {
+    if( -d "$_[0]") { $ok=1; } 
+      else {
+      print "Das Verzeichnis $_[0] ist nicht vorhanden!\n"; 
+      $fehler="1";
+    }
+  }
+
+  if($_[1] =~ /w/) {
+    if( -w "$_[0]") { $ok=1; } 
+      else {
+      print "$_[0] ist nicht schreibbar!\n"; 
+      $fehler="1";
+    }
+  }
+} else {
+  print "leer\n";
+  $fehler=1;
+}
+
+
+
+}
+
+
+sub fcaw {
+
+local($desc,$tmp,$tmp1,$tmp2,$tmp3,$tmp4,$muell);
+
+if(/^$_[1]/i) { 
+  ($tmp, $muell) = split(/\n/, $_[0]);
+  ($desc,$tmp1,$tmp2,$tmp3,$tmp4) = split(/ +|\t+/, $tmp); 
+  if($tmp1 ne "") {
+    if($tmp2 ne "") {
+      if($tmp3 ne "") {
+        if($tmp4 ne "") {
+          $_[2]="$tmp1 $tmp2 $tmp3 $tmp4";
+        } else {
+          $_[2]="$tmp1 $tmp2 $tmp3";
+        }
+      } else {
+        $_[2]="$tmp1 $tmp2";
+      }    
+    } else {
+        $_[2]="$tmp1";
+    }
   }
 }
 
-if($_[1] =~ /x/) {
-  if( -x "$_[0]") { $ok=1; } 
-    else {
-    print "$_[0] ist nicht ausfuehrbar!\n"; 
-    $fehler="1";
-  }
-}
-
-if($_[1] =~ /d/) {
-  if( -d "$_[0]") { $ok=1; } 
-    else {
-    print "Das Verzeichnis $_[0] ist nicht vorhanden!\n"; 
-    $fehler="1";
-  }
-}
-
-if($_[1] =~ /w/) {
-  if( -w "$_[0]") { $ok=1; } 
-    else {
-    print "$_[0] ist nicht schreibbar!\n"; 
-    $fehler="1";
-  }
-}
-
 }
 
 
-###############################################################################
-# 
 
-sub hmpf {
-
-print "Die Einstellungen in der $config sind fehlerhaft !!!($_[0])!!!\n";
-
-$fehler="1";
-
-}
-
-
-###############################################################################
-# 
 
 sub config_auslesen {
 
-open(CFG, "$config") || die "Kann die Konfigurationsdatei $config nicht oeffnen!\n";
+schaumamal($config, "r");
 
-while(<CFG>) {
-  
-  if(/#/) { next; }     
-  if(/BILDSCHIRMMODUS/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $bsmodus=$s[1]; }
-  if(/SYSTEMNAME/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $boxname=$s[1]; }
-  if(/SYSTEMART/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $systemart=$s[1]; }
-  if(/FTNADDRESS/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $ftnaddress=$s[1]; }
-  if(/FTNUPLINK/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $ftnuplink=$s[1]; }     
-  if(/TOSSCOMMAND/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $tosscommand=$s[1]; }
-  if(/IFCONFIG/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $ifconfig=$s[1]; }
-  if(/IFCICO/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $ifcicocmd=$s[1]; }
-  if(/IFLOG/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $iflog=$s[1]; }
-  if(/IFSTAT/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $ifstat=$s[1]; }
-  if(/FTNOUTBOUND/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $ftnoutbound=$s[1]; }
-  if(/FTNINBOUND/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $ftninbound=$s[1]; }
-  if(/USEAUTOTOSS/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $useautotoss=$s[1]; }
-
-  if(/MAILREADER/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $mailreader=$s[1]; }
-  if(/TMPVZ/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $tmpvz=$s[1]; }  
-  if(/BIGLOGS/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $biglogs=$s[1]; }
-
-  # daily
-  
-  if(/SYSTEMLOGFILE/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $logfile=$s[1]; }
-  if(/OUTPKT/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $outpkt=$s[1]; }
-  if(/FGATELOGFILE/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $fgatelogfile=$s[1]; }
-  if(/DAILYLOGFILE/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $dailylogfile=$s[1]; }
-  if(/ABSENDERAKA/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $absenderaka=$s[1]; }
-  if(/EMPFAENGERAKA/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $empfaengeraka=$s[1]; }
-  if(/EMPFAENGER/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $empfaenger=$s[1]; }
-  if(/TITEL/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $titel=$s[1]; }
-  if(/BRETT/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $brett=$s[1]; }
-  if(/WRITEEMPATH/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $writeem=$s[1]; }
-  if(/TESTMODE/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $testmode=$s[1]; }
-  if(/RFCMAIL/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $rfcmail=$s[1]; }
-  if(/DAILYTIME/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $dailytime=$s[1]; }
-  if(/DAILYUSE/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $dailyuse=$s[1]; }
-  if(/DAILYLOG/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $dailylog=$s[1]; }
-  if(/SEND_RFC_MAIL/) { @s=split(/\"/, $_); $s[1] =~ s/\"//g; $send_rfc_mail=$s[1]; }
+if($fehler eq "1") { 
+  print "Exit.\n"; 
+  exit(100); 
 }
 
-#print "$boxname\n";      print "$ftnaddress\n";  print "$ftnuplink\n";
-#print "$tosscommand\n";  print "$ifreq\n";       print "$ifconfig\n";
-#print "$ifcicocmd\n";    print "$iflog\n";       print "$ifstat\n";
-#print "$ftnoutbound\n";  print "$mailreader\n";  print "$tmpvz\n";
-#
-#print "$logfile\n";      print "$outpkt\n";      print "$fgatelogfile\n";
-#print "$dailylogfile\n"; print "$absenderaka\n"; print "$empfaengeraka\n";
-#print "$empfaenger\n";   print "$titel\n";       print "$brett\n";
-#print "$writeem\n";      print "$testmode\n";    print "$rfcempfaenger\n";
-#print "$dailytime\n";    print "$dailyuse\n";
+local($location);
 
-if($bsmodus       eq "") { hmpf("BILDSCHIRMMODUS")}
-if($boxname       eq "") { hmpf("SYSTEMNAME");    }
-if($systemart     eq "") { hmpf("SYSTEMART");     }
-if($ftnaddress    eq "") { hmpf("FTNADDRESS");    }
-if($ftnuplink     eq "") { hmpf("FTNUPLINK");     }
-if($tosscommand   eq "") { hmpf("TOSSCOMMAND");   }
-if($ifconfig      eq "") { hmpf("IFCONFIG");      }
-if($ifcicocmd     eq "") { hmpf("IFCICOCMD");     }
-if($iflog         eq "") { hmpf("IFLOG");         }
-if($ifstat        eq "") { hmpf("IFSTAT");        }
-if($ftnoutbound   eq "") { hmpf("FTNOUTBOUND");   }
-if($ftninbound    eq "") { hmpf("FTNINBOUND");    }
-if($mailreader    eq "") { hmpf("MAILREADER");    }
-if($tmpvz         eq "") { hmpf("TMPVZ");         }
-if($biglogs       eq "") { hmpf("BIGLOGS");       }
-if($useautotoss   eq "") { hmpf("USEAUTOTOSS");   }
-  
-if($logfile       eq "") { hmpf("LOGFILE");       }
-if($outpkt        eq "") { hmpf("OUTPKT");        }
-if($fgatelogfile  eq "") { hmpf("FGATELOGFILE");  }
-if($dailylogfile  eq "") { hmpf("DAILYLOGFILE");  }
-if($absenderaka   eq "") { hmpf("ABSENDERAKA");   }
-if($empfaengeraka eq "") { hmpf("EMPFAENGERAKA"); }
-if($empfaenger    eq "") { hmpf("EMPFAENGER");    }
-if($titel         eq "") { hmpf("TITEL");         }
-if($brett         eq "") { hmpf("BRETT");         }
-if($writeem       eq "") { hmpf("WRITEEM");       }
-if($testmode      eq "") { hmpf("TESTMODE");      }
-if($rfcmail       eq "") { hmpf("RFCMAIL");       }
-if($dailytime     eq "") { hmpf("DAILYTIME");     }
-if($dailyuse      eq "") { hmpf("DAILYUSE");      }
-if($dailylog      eq "") { hmpf("DAILYLOG");      }
+open(CF, $config) || die "Konnte $config nicht oeffnen\n!";
+while(<CF>) {
 
-
-# gff
-schaumamal("$tosscommand", "rx");
-schaumamal("$ifconfig", "r");
-schaumamal("$ifcicocmd", "rx");
-schaumamal("$iflog", "r");
-schaumamal("$ifstat", "rx");
-schaumamal("$ftnoutbound", "dw");
-schaumamal("$ftninbound", "dr");
-schaumamal("$mailreader", "rx");
-schaumamal("$tmpvz", "drw");
-
-# daily
-if($dailyuse eq "1") {
-  schaumamal("$fgatelogfile", "r");
-  schaumamal("$dailylogfile", "rw");
-  schaumamal("$writeem", "rx");
+     /#/ && next;
+     fcaw($_, "systemname ", $boxname);
+     fcaw($_, "ftnaddress 2\:", $ftnaddress);
+     fcaw($_, "ftninbound", $ftninbound);
+     fcaw($_, "ftnoutbound", $ftnoutbound);
+     fcaw($_, "systemart ", $systemart);
+     fcaw($_, "ftnaddress ", $ftnaddress);
+     fcaw($_, "ftnuplink ", $ftnuplink);
+     if($_ =~ /^ftnuplink/i) {
+       local($node,$desc,$desc1,$desc2,$desc3,$desc4)=split(/ +/,$ftnuplink);
+       push(@ftnuplinks, "$node $desc $desc1 $desc2 $desc3 $desc4");
+     }
+     fcaw($_, "sysopaddress ", $sysopaddress);     
+     fcaw($_, "useautotoss ", $useautotoss);
+     fcaw($_, "tosscommand ", $tosscommand);
+     fcaw($_, "mailreader ", $mailreader);
+     fcaw($_, "biglogs ", $biglogs);
+     fcaw($_, "ifconfig ", $ifconfig);
+     fcaw($_, "ifcico ", $ifcicocmd);
+     fcaw($_, "iflog ", $iflog);
+     fcaw($_, "ifstat ", $ifstat);
+     fcaw($_, "tmpvz ", $tmpvz);
+     
 }
+
+close(CF);
+
+ 
+
+schaumamal($ftninbound, "rd");
+schaumamal($mailreader, "rx");
+schaumamal($ifconfig, "r");
+schaumamal($ifcicocmd, "rx");
+schaumamal($iflog, "r");
+schaumamal($tosscommand, "rx");
+
 
 if($fehler eq "1") { 
   print "Exit.\n"; 
@@ -205,9 +162,7 @@ if($fehler eq "1") {
 }
 
 
-###############################################################################
 # Bildaufbau
-
 sub machma {
  
 initscr();
@@ -218,59 +173,41 @@ local($dtext) = "#  Fido  Hilfe    (F10 = Menu)";
 
 
 attron(COLOR_PAIR(1));
-addstr(stdscr, 0, 0, "                                                                                ");
-addstr(stdscr, 0, 1, "$boxname ($ftnaddress)");
 
-if($bsmodus eq 0) {
-  addstr(stdscr, 24, 0, "                                                                                ");
-  addstr(stdscr, 24, 1, "$dtext");
-  $logwin = newwin(17, 80, 7, 0);
-  attron(COLOR_PAIR(4));
-  move(6, 0);
-  if($systemart eq 0) {
-    $lcallwin = newwin(5, 38, 1, 0);
-    $licallwin = newwin(5, 39, 1, 39);
-    for($i=0; $i < 38; $i++) { addch(ACS_HLINE); }
-    addch(ACS_BTEE); 
-    for($i=39; $i < 79; $i++) { addch(ACS_HLINE); }
-    for($i=1; $i < 6; $i++) { addch($i, 38, ACS_VLINE); }
-  } elsif($systemart eq 1) {
-    for($i=0; $i < 79; $i++) { addch(ACS_HLINE); }
-    $lcallwin = newwin(5, 79, 1, 0);
-  }
-} else {
-  addstr(stdscr, 49, 0, "                                                                                ");
-  addstr(stdscr, 49, 1, "$dtext");
-  $logwin = newwin(36, 80, 13, 0);
-  refresh($logwin);
-  attron(COLOR_PAIR(4));
-  move(12, 0);
-  if($systemart eq 0) {
-    $lcallwin = newwin(10, 38, 1, 0);
-    $licallwin = newwin(10, 39, 1, 39);
-    for($i=0; $i < 38; $i++) { addch(ACS_HLINE); }
-    addch(ACS_BTEE); 
-    for($i=39; $i < 79; $i++) { addch(ACS_HLINE); }
-    for($i=1; $i < 12; $i++) { addch($i, 38, ACS_VLINE); }
-  } elsif($systemart eq 1) {
-    for($i=0; $i < 79; $i++) { addch(ACS_HLINE); }
-    $lcallwin = newwin(10, 79, 1, 0);
-  }
+for($i=0; $i < $COLS; $i++) {
+   addstr(stdscr, $LINES - 1, $i, " ");
+   addstr(stdscr, 0, $i, " ");
+}
+
+addstr(stdscr, 0, 1, "$boxname ($ftnaddress)");
+addstr(stdscr, $LINES - 1, 1, "$dtext");
+
+$logwin = newwin($LINES - 8, $COLS, 7, 0);
+#$logwin = newwin(17, 80, 7, 0);
+
+attron(COLOR_PAIR(4));
+move(6, 0);
+if($systemart eq 0) {
+  $lcallwin = newwin(5, $COLS / 2 - 2, 1, 0);
+  $licallwin = newwin(5, $COLS / 2 - 1, 1, $COLS / 2 - 1);
+  for($i=0; $i < $COLS / 2 - 2; $i++) { addch(ACS_HLINE); }
+  addch(ACS_BTEE); 
+  for($i=$COLS / 2 - 1; $i < $COLS - 1; $i++) { addch(ACS_HLINE); }
+  for($i=1; $i < 6; $i++) { addch($i, $COLS / 2 - 2, ACS_VLINE); }
+} elsif($systemart eq 1) {
+  for($i=0; $i < $COLS - 1; $i++) { addch(ACS_HLINE); }
+  $lcallwin = newwin(5, $COLS -1, 1, 0);
 }
 
 
 attron(COLOR_PAIR(1)); 
-
 refresh();
 
 }
 
 
-###############################################################################
-# Farbendefinition
-
 sub color_pairs {
-
+ 
 start_color();
 
 if($bw ne 1) {
@@ -283,6 +220,8 @@ if($bw ne 1) {
   init_pair(7, COLOR_BLUE, COLOR_WHITE);
   init_pair(8, COLOR_BLACK, COLOR_WHITE);
   init_pair(9, COLOR_WHITE, COLOR_BLUE);
+  init_pair(10, COLOR_GREEN, COLOR_WHITE);
+  init_pair(11, COLOR_BLUE, COLOR_WHITE);
 } else {
   init_pair(1, COLOR_BLACK, COLOR_GREEN);
   init_pair(2, COLOR_WHITE, COLOR_BLACK);
@@ -293,15 +232,14 @@ if($bw ne 1) {
   init_pair(7, COLOR_BLUE, COLOR_WHITE);
   init_pair(8, COLOR_BLACK, COLOR_WHITE);
   init_pair(9, COLOR_WHITE, COLOR_BLACK);
+  init_pair(10, COLOR_GREEN, COLOR_WHITE);
+  init_pair(11, COLOR_BLUE, COLOR_WHITE);
 }
   
-
 }
 
 
-###############################################################################
 # hline
-
 sub hline {
 
 move($_[0], $_[2], 0);
@@ -316,9 +254,7 @@ addch($_[0], ACS_RTEE);
 }
 
 
-###############################################################################
 # Scrollbalken
-
 sub sbalk {
 
 if($_[4] eq 1 || $_[4] eq -1) {
@@ -352,18 +288,12 @@ if($_[5] ne "0" && $_[4] eq 1) {
 }
 
 
-###############################################################################
 # Fido Window
-
 sub mfwin { 
 
 $nach_rechts=0; $nach_links=0; $aktion="";
 
-if($bsmodus eq 0) {
-  $fwin=newwin(9, 23, 15, 3);
-} else {
-  $fwin=newwin(9, 23, 40, 3);
-}
+$fwin=newwin(9, 23, $LINES - 10, 3);
  
 attron($fwin, COLOR_PAIR(7));
 addstr($fwin, "                                                                                                                                                                                          ");
@@ -437,38 +367,35 @@ for($i=0; $i = 1; $ii++) {
      }
    }
 
-refresh($fwin);
+if($ch eq -1) {
+  &akzeit; 
+} else {
+  refresh($fwin);
+}
+
 
 }
 
 }
 
 
-###############################################################################
 # rauten Window
-
 sub mrwin {
 
 $nach_rechts=0; $nach_links=0; $aktion="";
 
-if($bsmodus eq 0) {
-  $rwin=newwin(6, 24, 18, 0);
-} else {
-  $rwin=newwin(6, 24, 43, 0);
-}  
+$rwin=newwin(5, 24, $LINES - 6, 0);
 
 attron($rwin, COLOR_PAIR(7));
 addstr($rwin, "                                                                                                                                                                                          ");
 
 $mrwin[1]="Ueber...";
 $mrwin[2]="Desktop neu zeichnen";
-$mrwin[3]="Zeilenmodus 25/50";
-$mrwin[4]="Beenden";
+$mrwin[3]="Beenden";
 
 sbalk($rwin, $mrwin[1], 1, 1, 1, 0, 22);
 sbalk($rwin, $mrwin[2], 2, 1, 0, 0, 22);
 sbalk($rwin, $mrwin[3], 3, 1, 0, 0, 22);
-sbalk($rwin, $mrwin[4], 4, 1, 0, 0, 22);
 
 attron($rwin, COLOR_PAIR(8));
 
@@ -482,7 +409,7 @@ for($i=0; $i = 1; $ii++) {
 
    if($ch == KEY_DOWN || $ch == KEY_UP || $ch == KEY_LEFT || $ch == KEY_RIGHT) {
      if($ch == KEY_DOWN) {
-       if($z ne 4) {
+       if($z ne 3) {
          $z++;
        }
        $n=$z - 1;
@@ -521,34 +448,27 @@ for($i=0; $i = 1; $ii++) {
      }
    }
 
-refresh($rwin);
-
+if($ch eq -1) {
+  &akzeit; 
+} else {
+  refresh($rwin);
 }
 
 }
 
+}
 
-###############################################################################
-# 
 
 sub mhwin { 
 
-if($bsmodus eq 0) {
-  $hwin=newwin(5, 22, 19, 9);
-} else {
-  $hwin=newwin(5, 22, 44, 9);
-}
+$hwin=newwin(3, 22, $LINES - 4, 9);
 
 attron($hwin, COLOR_PAIR(7));
 addstr($hwin, "                                                                                                                                                                                          ");
 
-$mhwin[1]="Was machemer";
-$mhwin[2]="den hier";
-$mhwin[3]="hin?";
+$mhwin[1]="Hilfe";
 
 sbalk($hwin, $mhwin[1], 1, 1, 1, 0, 20);
-sbalk($hwin, $mhwin[2], 2, 1, 0, 0, 20);
-sbalk($hwin, $mhwin[3], 3, 1, 0, 0, 20);
 
 attron($hwin, COLOR_PAIR(8));
 
@@ -562,7 +482,7 @@ for($i=0; $i = 1; $ii++) {
 
    if($ch == KEY_DOWN || $ch == KEY_UP || $ch == KEY_LEFT || $ch == KEY_RIGHT) {
    if($ch == KEY_DOWN) {
-     if($z ne 3) {
+     if($z ne 1) {
        $z++;
      }
      $n=$z - 1;
@@ -602,15 +522,16 @@ for($i=0; $i = 1; $ii++) {
      }
    }
 
-refresh($hwin);
-
+if($ch eq -1) {
+  &akzeit; 
+} else {
+  refresh($hwin);
 }
 
 }
 
+}
 
-###############################################################################
-#
 
 sub menu {
 
@@ -643,8 +564,8 @@ while($raushier ne 1) {
 
 # #
 if($aktion eq "Beenden") { &ausgang }
-if($aktion eq "Desktop neu zeichnen") { &neuaufbau }
-if($aktion eq "Zeilenmodus 25/50") { &zeilenmodus_umschalten }
+if($aktion eq "Desktop neu zeichnen") { &touchall("r") }
+if($aktion eq "Ueber...") { &uebergff }
 
 # Fido
 if($aktion eq "Files requesten...") { &request }
@@ -656,6 +577,8 @@ if($aktion eq "Direktanruf...") { &call_node }
 if($aktion eq "Tosser starten") { &autotoss }
 
 # Hilfe
+if($aktion eq "Hilfe") { &hilfe }
+
 
 touchwin($logwin);
 refresh($logwin);
@@ -663,9 +586,37 @@ refresh($logwin);
 }
 
 
-###############################################################################
-# automatisches Tossen
+sub uebergff {
 
+
+$win = newwin(10, 40, $LINES / 3, ($COLS - 40) / 2);
+
+attron($win, COLOR_PAIR(7));
+addstr($win, "                                                                                                                                                                                                                                                                                                                                                                                                                   ");
+attron($win, COLOR_PAIR(8));
+box($win, 0, 0);
+attron($win, COLOR_PAIR(11));
+addstr($win, 0, 3, " gff v$version ($rdatum) ");
+attron($win, COLOR_PAIR(8));
+addstr($win, 2, 2, "Graphisches Fido Frontend fuer Linux");
+addstr($win, 4, 12, "geschrieben von");
+addstr($win, 6, 10, "Thomas Koch 1998/99");
+&mcnru;
+refresh($win);
+nocbreak;
+getch();
+
+}
+ 
+
+sub mcnru {
+
+move($LINES - 1, $COLS - 1);
+
+}
+
+
+# automatisches Tossen
 sub autotoss {
 
 $toss_mich=0;
@@ -696,11 +647,7 @@ if($toss_mich eq 1) {
     $nulliger=0;
   } else {
     logger("Tosse...");
-    if($bsmodus eq 0) {
-      $tosswin = newwin(3, 12, 8, 32);
-    } else {
-      $tosswin = newwin(3, 12, 14, 32);
-    }
+    $tosswin = newwin(3, 12, 8, ($COLS - 12) / 2);
     
     attron($tosswin, COLOR_PAIR(1));
     box($tosswin, 0, 0);
@@ -716,9 +663,38 @@ if($toss_mich eq 1) {
 }
 
 
-###############################################################################
-# Request files...
+# Ist ein Flowfile fuer den Sysop vorhanden, wird ein 'M' rechts unten 
+# eingeblendet. 
+sub sysop_mail {
 
+local($datei,$req,$outbound_ext);
+
+local($zone,$netnodepoint) = split(/:/, $sysopaddress);
+local($netnode,$point) = split(/\./, $netnodepoint);
+
+$req = sprintf("%04x%04x", split(/\//, $netnode));
+$point = sprintf("%08x", $point);
+
+if($zone eq 2) {
+  $datei="$ftnoutbound/outbound/$req.pnt/$point.hlo";
+} else {
+  $outbound_ext = sprintf("%03x", $zone);
+  $datei="$ftnoutbound/outbound.$outbound_ext/$req.pnt/$point.hlo";
+}
+
+if(-e $datei) {
+  addstr($LINES - 1, $COLS - 3, "M"); 
+} else {
+  addstr($LINES - 1, $COLS - 3, " "); 
+}  
+
+refresh();
+
+}
+
+
+
+# Request files...
 sub reqfile {
 
 if($_[0] =~ /\d+:\d+\/\d+/) {
@@ -745,9 +721,6 @@ if( -e "$reqfile") {
 }
 
 
-###############################################################################
-#
-
 sub hex2dec {
 
 $net=hex(substr($_[0], 0, 4));
@@ -758,23 +731,14 @@ $_[1]="$net/$node";
 }
 
 
-###############################################################################
-#
-
 sub additem {
 
 $fragwin=newwin(6, 20, 4, 4);
 attron($fragwin, COLOR_PAIR(8));
 addstr($fragwin, "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ");
 
-
-
-
 }
 
-
-###############################################################################
-#
 
 sub outbm {
 
@@ -829,7 +793,7 @@ for $pntvz (@pnt) {
    }     
 }
 
-$outbm = newwin(18, 40, 3, 19);
+$outbm = newwin(18, 40, 3, ($COLS - 40) / 2);
 attron($outbm, COLOR_PAIR(8));
 addstr($outbm, "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ");
 box($outbm, 0, 0);
@@ -893,21 +857,20 @@ for($iii=0; $iii = 1; $ii++) {
      last;
    }
 
-     if($zn eq 10) {
-       $aktion=$outbmwin[$z];
-       $iii=1
-     }
+   if($zn eq 10) {
+     $aktion=$outbmwin[$z];
+     $iii=1;
+     last;
    }
+ }
 refresh($outbm);
 }
 
 
 
+
 }
 
-
-###############################################################################
-#
 
 sub logger {
 
@@ -916,12 +879,9 @@ system("logger -p local0.info $_[0]");
 }
 
 
-###############################################################################
 # Zeit holen
-
 sub zeit_holen {
 
-@Datum=""; @Uhr=""; @Uhrzeit=""; $zeit=""; $gestern=""; $akdat=""; $akdatg="";
 
 $zeit  = time(); 
 $zeit  = localtime($zeit);
@@ -950,9 +910,7 @@ $akzeit = "$Uhrzeit[0]:$Uhrzeit[1]";
 }
 
 
-###############################################################################
 # Spielerei
-
 sub ringeldich {
 
 $uhu++;
@@ -964,9 +922,6 @@ refresh();
 
 }
 
-
-###############################################################################
-# 
 
 sub l_up {
 
@@ -982,9 +937,6 @@ if($lineup != -$laenge) { $line--; }
 }
 
 
-###############################################################################
-#
-
 sub l_down {
 
 if($s[$line] ne "") { 
@@ -999,9 +951,6 @@ if($line < $laenge) { $line++; $lineup++; }
 }
 
 
-###############################################################################
-# 
-
 sub iflogfile_scrollen {
 
 
@@ -1011,17 +960,13 @@ local(@s, @v, @splitt, @splitte, $tmp);
 
 open(IFLOG, "$iflog") || die "Konnte $iflog nicht oeffnen!\n";
 
-if($bsmodus eq 0) {
-  addstr(stdscr, 24, 77, "l");
-} else {
-  addstr(stdscr, 49, 77, "l");
-}
+addstr(stdscr, $LINES - 1, $COLS - 3, "l");
 
 refresh();
 
 while (<IFLOG>) {
       if($biglogs eq 1) {
-          if(/$akdat/) {
+          if(/$akdat|$akdatg/) {
           if(/errno=5 : I\/O error/) { next; }
           if(/send_str error/)       { next; }
           if(/tcsetattr/)            { next; }
@@ -1057,8 +1002,8 @@ while (<IFLOG>) {
              @splitte=split(/ +/, $splitt[0]);
    	     $tmp="$splitte[0] $splitte[1] $splitte[2] $splitte[5] $splitte[6] $splitte[7] $splitte[8] bytes";
 	     $tmp =~ s/\x0A//g;
-             if ($i=length($tmp) > 79) { 
-	        while ($i=length($tmp) > 79) {
+             if ($i=length($tmp) > $COLS - 1) { 
+	        while ($i=length($tmp) > $COLS - 1) {
 	              chop($tmp);
 	        }
 	     }
@@ -1071,8 +1016,8 @@ while (<IFLOG>) {
                $tmp =~ s/\x0A//g;
    	       $tmp =~ s/   //g;
 	       $tmp =~ s/\(update \(null\), password "\(null\)"\)//g;
-               if ($i=length($tmp) > 79) { 
-                  while ($i=length($tmp) > 79) {
+               if ($i=length($tmp) > $COLS - 1) { 
+                  while ($i=length($tmp) > $COLS - 1) {
 	                chop($tmp);
     	          }
                }
@@ -1115,8 +1060,8 @@ while (<IFLOG>) {
            @splitte=split(/ +/, $splitt[0]);
    	   $tmp="$splitte[0] $splitte[1] $splitte[2] $splitte[5] $splitte[6] $splitte[7] $splitte[8] bytes";
 	   $tmp =~ s/\x0A//g;
-           if ($i=length($tmp) > 79) { 
-	      while ($i=length($tmp) > 79) {
+           if ($i=length($tmp) > $COLS - 1) { 
+	      while ($i=length($tmp) > $COLS - 1)  {
 	            chop($tmp);
 	      }
 	   }
@@ -1129,8 +1074,8 @@ while (<IFLOG>) {
            $tmp =~ s/\x0A//g;
    	   $tmp =~ s/   //g;
 	   $tmp =~ s/\(update \(null\), password "\(null\)"\)//g;              
-           if ($i=length($tmp) > 79) { 
-              while ($i=length($tmp) > 79) {
+           if ($i=length($tmp) > $COLS - 1) { 
+              while ($i=length($tmp) > $COLS - 1) {
 	            chop($tmp);
     	      }
            }
@@ -1143,21 +1088,12 @@ while (<IFLOG>) {
 $laenge=@s;
 $z=0; 
 
-if($bsmodus eq 0) {
-  $sz=17;
-  for($line=$laenge - $sz; $line < $laenge; $line++) {
-     addstr($logwin, $z, 0, "$s[$line]"); $z++;  
-  }
-  addstr(stdscr, 24, 77, " ");
-  $lineup=$line - 17; 
-} else {
-  $sz=36;
-  for($line=$laenge - $sz; $line < $laenge; $line++) {
-     addstr($logwin, $z, 0, "$s[$line]"); $z++;  
-  }
-  addstr(stdscr, 49, 77, " ");
-  $lineup=$line - 36;
+$sz=$LINES - 8;
+for($line=$laenge - $sz; $line < $laenge; $line++) {
+   addstr($logwin, $z, 0, "$s[$line]"); $z++;  
 }
+addstr(stdscr, $LINES - 1, $COLS - 3, " ");
+$lineup=$line - ($LINES - 8); 
 
 
 refresh();
@@ -1173,11 +1109,7 @@ for($ii=0; $ii = 1; $v=1)  {
    $ch = getch();
 
    if($ch == KEY_DOWN) { 
-     if($bsmodus eq 0) {
-       l_down(16);
-     } else {
-       l_down(35);
-     }
+     l_down($LINES - 9);
    }
    if($ch == KEY_UP) { l_up; }
 
@@ -1186,27 +1118,15 @@ for($ii=0; $ii = 1; $v=1)  {
 
    # PUp
    if($ch eq "339") { 
-     if($bsmodus eq 0) {
-       for($iu=0; $iu < 16; $iu++) {
-          l_up; 
-       }
-     } else {
-       for($iu=0; $iu < 32; $iu++) {
-          l_up; 
-       }    
+     for($iu=0; $iu < $LINES - 9; $iu++) {
+        l_up; 
      }
    }
 
    # PDown
    if($ch eq "338") { 
-     if($bsmodus eq 0) {
-       for($iu=0; $iu < 16; $iu++) {
-  	  l_down(16); 
-       }
-     } else {
-       for($iu=0; $iu < 32; $iu++) {
-     	  l_down(35);
-       }  
+     for($iu=0; $iu < 16; $iu++) {
+        l_down($LINES - 9); 
      }
    }
    touchwin($logwin);
@@ -1216,16 +1136,9 @@ for($ii=0; $ii = 1; $v=1)  {
 
 $z=0; 
 
-if($bsmodus eq 0) {
-  $sz=17;
-  for($line=$laenge - $sz; $line < $laenge; $line++) {
-     addstr($logwin, $z, 0, "$s[$line]"); $z++;
-  }
-} else {
-  $sz=36;
-  for($line=$laenge - $sz; $line < $laenge; $line++) {
-     addstr($logwin, $z, 0, "$s[$line]"); $z++;
-  }
+$sz=$LINES - 8;
+for($line=$laenge - $sz; $line < $laenge; $line++) {
+   addstr($logwin, $z, 0, "$s[$line]"); $z++;
 }
 
 
@@ -1238,34 +1151,32 @@ neuaufbau;
 }
 
 
-###############################################################################
-# Request
-
 sub request {
 
 $files=""; $requestnow=0;
 
 echo;
 
-$reqwin = newwin(14, 40, 5, 19);
+$reqwin = newwin(14, 40, 6, ($COLS - 40) / 2);
 attron($reqwin, COLOR_PAIR(1));
 addstr($reqwin, "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ");
 box($reqwin, 0, 0);
 addstr($reqwin, 0, 15, " Request ");
 addstr($reqwin, 1, 1, "Node: ");
 hline($reqwin, 38, 2);
-move(6, 26);
+move(7, ($COLS - 40) / 2 + 7);
 refresh($reqwin);
+cbreak();
 getstr($node);
 
 if($node ne "" && $node =~ /\d+:\d+\/\d+/) {
   move(8, 21);
   refresh($reqwin);
 
-  $z=3; $zz=8;
+  $z=3; $zz=9;
   for($nix=1; $iii = 2; $nix++) {
      addstr($reqwin, $z, 1, "$nix: ");
-     move($zz, 23);
+     move($zz, ($COLS - 40) / 2 + 4);
      refresh($reqwin);
      getstr($file);
      $z++; $zz++;
@@ -1275,7 +1186,7 @@ if($node ne "" && $node =~ /\d+:\d+\/\d+/) {
 
   clear($reqwin);
 
-  $reqwin = newwin(5, 27, 9, 25);
+  $reqwin = newwin(5, 27, 9, ($COLS - 27) / 2);
   attron($reqwin, COLOR_PAIR(4));
   box($reqwin, 0, 0);
   hline($reqwin, 25, 2);
@@ -1317,11 +1228,10 @@ if($node ne "" && $node =~ /\d+:\d+\/\d+/) {
 
      refresh($reqwin);
   
-     }
-
-for(@files) {   
-   &reqfile($node, $_);
-}
+  }
+  for(@files) {   
+     &reqfile($node, $_);
+  } 
 
 }
 
@@ -1330,15 +1240,12 @@ if($requestnow == 1) {
   system("echo > $tmpvz/gff.bsy && $ifcicocmd -I$ifconfig -r 1 $ftnnode && rm -f $tmpvz/gff.bsy &");    
 }
 
-&neuaufbau;
+#&neuaufbau;
 &touchall("r");
 noecho();
 
 }
 
-
-###############################################################################
-#
 
 sub touchall {
 
@@ -1362,122 +1269,78 @@ if($systemart eq 0) {
 }
 
 
-###############################################################################
 # Bild-Neuaufbau
-
 sub neuaufbau {
 
-
 attron(COLOR_PAIR(4));
-
-if($bsmodus eq 0) {
-  move(6, 0);
-  if($systemart eq 0) {
-    for($i=0; $i < 38; $i++) { addch(ACS_HLINE); }
-    addch(ACS_BTEE);
-    for($i=40; $i < 79; $i++) { addch(ACS_HLINE); }
-    for($i=1; $i < 6; $i++) { addch($i, 38, ACS_VLINE); }
-  } elsif($systemart eq 1) {
-    for($i=0; $i < 79; $i++) { addch(ACS_HLINE); }
-  }  
-} else {
-  move(12, 0);
-  if($systemart eq 0) {
-    for($i=0; $i < 38; $i++) { addch(ACS_HLINE); }
-    addch(ACS_BTEE);
-    for($i=40; $i < 79; $i++) { addch(ACS_HLINE); }
-    for($i=1; $i < 12; $i++) { addch($i, 38, ACS_VLINE); }
-  } elsif($systemart eq 1) {
-    for($i=0; $i < 79; $i++) { addch(ACS_HLINE); }
-  }  
+move(6, 0);
+if($systemart eq 0) {
+  $lcallwin = newwin(5, $COLS / 2 - 2, 1, 0);
+  $licallwin = newwin(5, $COLS / 2 - 1, 1, $COLS / 2 - 1);
+  for($i=0; $i < $COLS / 2 - 2; $i++) { addch(ACS_HLINE); }
+  addch(ACS_BTEE); 
+  for($i=$COLS / 2 - 1; $i < $COLS - 1; $i++) { addch(ACS_HLINE); }
+  for($i=1; $i < 6; $i++) { addch($i, $COLS / 2 - 2, ACS_VLINE); }
+} elsif($systemart eq 1) {
+  for($i=0; $i < $COLS - 1; $i++) { addch(ACS_HLINE); }
+  $lcallwin = newwin(5, $COLS -1, 1, 0);
 }
-  
 
 &touchall;
 
 }
 
 
-###############################################################################
 # hilfe!
-
 sub hilfe {
 
 local(@helptext, $z);
 
 $helptext[0]="c  Call Node";
-$helptext[1]="d  Statistikmail erzeugen";
-$helptext[2]="h  Hilfefenster";
-$helptext[3]="l  iflog-file blaettern";
-$helptext[4]="m  Mailreader starten";
-$helptext[5]="n  Desktop neu zeichnen";
-$helptext[6]="p  Poll Uplink";
-$helptext[7]="r  Request files";
-$helptext[8]="s  Outbound anzeigen";
-$helptext[9]="x  Quit";
-$helptext[11]="F10  Menu";
+$helptext[1]="h  Hilfefenster";
+$helptext[2]="l  iflog-file blaettern";
+$helptext[3]="m  Mailreader starten";
+$helptext[4]="n  Desktop neu zeichnen";
+$helptext[5]="p  Poll Uplink";
+$helptext[6]="r  Request files";
+$helptext[7]="s  Outbound anzeigen";
+$helptext[8]="x  Quit";
+$helptext[9]="F10  Menu";
 
 
+$helpwin = newwin(21, 60, $LINES - ($LINES - 2), ($COLS - 60) / 2);
 
-if($bsmodus eq 0) {
-
-  $helpwin = subwin(21, 60, 2, 10);
-
-  attron($helpwin, COLOR_PAIR(2));
-  addstr($helpwin, "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ");
-  attron($helpwin, COLOR_PAIR(4));
-  box($helpwin, 0, 0); 
-  hline($helpwin, 58, 2);
-  attron($helpwin, COLOR_PAIR(5));
-  addstr($helpwin, 0, 26, " Hilfe ");
-  attron($helpwin, COLOR_PAIR(3));
+attron($helpwin, COLOR_PAIR(2));
+addstr($helpwin, "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ");
+attron($helpwin, COLOR_PAIR(4));
+box($helpwin, 0, 0); 
+hline($helpwin, 58, 2);
+attron($helpwin, COLOR_PAIR(5));
+addstr($helpwin, 0, 26, " Hilfe ");
+attron($helpwin, COLOR_PAIR(3));
   
-  local($z)=4;
+local($z)=4;
   
-  for(@helptext) {
-     addstr($helpwin, $z, 2, "$_"); $z++;
-  }
-  refresh($helpwin);
-  move(24, 79); 
-  refresh();
-
-} else {
-
-  $helpwin = subwin(21, 60, 14, 10);
-
-  attron($helpwin, COLOR_PAIR(2));
-  addstr($helpwin, "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ");
-  attron($helpwin, COLOR_PAIR(4));
-  box($helpwin, 0, 0); 
-  hline($helpwin, 58, 2);
-  attron($helpwin, COLOR_PAIR(5));
-  addstr($helpwin, 0, 26, " Hilfe ");
-  attron($helpwin, COLOR_PAIR(3));
-  
-  local($z)=4;
-  
-  for(@helptext) {
-     addstr($helpwin, $z, 2, "$_"); $z++;
-  }
-  refresh($helpwin);
-  move(49, 79);
-  refresh();
+for(@helptext) {
+   addstr($helpwin, $z, 2, "$_"); $z++;
 }
+refresh($helpwin);
+&mcnru;
+refresh();
 
-
+nocbreak();
 getch;
+cbreak();
 
 clear($helpwin);
 refresh($helpwin);
 
-neuaufbau;
+&touchall("r");
 
 }
 
 
-###############################################################################
 # exit
-
 sub ausgang {
 
 clear(); 
@@ -1488,9 +1351,7 @@ exit(0);
 }
 
 
-###############################################################################
 # startup
-
 sub hello {
 
 print "gff $version Graphisches Fido Frontend fuer Linux\n";
@@ -1500,13 +1361,12 @@ sleep (1);
 }
 
 
-###############################################################################
 # call node
-
 sub call_node {
 
 echo;
-$callwin = subwin(3, 20, 10, 28);
+nocbreak;
+$callwin = newwin(3, 20, 10, 28);
 box($callwin, 0, 0);
 addstr($callwin, 0, 5, " Addresse? ");
 addstr($callwin, 1, 1, "                  ");
@@ -1527,9 +1387,7 @@ noecho;
 }
 
 
-###############################################################################
 # logfiles (puh)
-
 sub iflogfile_aufbereiten {
 
 local(@iflines, @splitt, @splitte, $tmp);
@@ -1538,11 +1396,8 @@ $filenew=(-s "$iflog");
 
 if($filenew ne $fileold || $_[0] eq "r") {
 
-  if($bsmodus eq 0) {
-    open (IFLOG, "tail --lines=40 $iflog |") || die "Konnte tail nicht korrekt ausfuehren";
-  } else {
-    open (IFLOG, "tail --lines=80 $iflog |") || die "Konnte tail nicht korrekt ausfuehren";
-  }  
+  open (IFLOG, "tail --lines=80 $iflog |") || die "Konnte tail nicht korrekt ausfuehren";
+  
   while (<IFLOG>) {
         if (/errno=5 : I\/O error/) { next; }
         if (/send_str error/)       { next; }
@@ -1577,8 +1432,8 @@ if($filenew ne $fileold || $_[0] eq "r") {
            @splitte=split(/ +/, $splitt[0]);
 	   $tmp="$splitte[0] $splitte[1] $splitte[2] $splitte[5] $splitte[6] $splitte[7] $splitte[8] bytes";
 	   $tmp =~ s/\x0A//g;
-           if ($i=length($tmp) > 79) { 
-	      while ($i=length($tmp) > 79) {
+           if ($i=length($tmp) > $COLS - 1) { 
+	      while ($i=length($tmp) > $COLS - 1) {
 	            chop($tmp);
 	      }
 	   }
@@ -1590,8 +1445,8 @@ if($filenew ne $fileold || $_[0] eq "r") {
              $tmp =~ s/\x0A//g;
 	     $tmp =~ s/   //g;
 	     $tmp =~ s/\(update \(null\), password "\(null\)"\)//g;
-             if ($i=length($tmp) > 79) { 
-                while ($i=length($tmp) > 79) {
+             if ($i=length($tmp) > $COLS - 1) { 
+                while ($i=length($tmp) > $COLS - 1) {
 	              chop($tmp);
     	        }
              }
@@ -1606,22 +1461,15 @@ if($filenew ne $fileold || $_[0] eq "r") {
   $oo=0;
 
   
-  if($bsmodus eq 0) {
-    for ($i=$laenge - 17; $i < $laenge; $i++) {  
-        addstr($logwin, $oo, 0, "$iflines[$i]"); 
-        $oo++;
-    }
-  } else {
-    for ($i=$laenge - 36; $i < $laenge; $i++) {  
-        addstr($logwin, $oo, 0, "$iflines[$i]"); 
-        $oo++;
-    }
+  for ($i=$laenge - ($LINES - 8); $i < $laenge; $i++) {  
+      addstr($logwin, $oo, 0, "$iflines[$i]"); 
+      $oo++;
   }
 
   touchwin($logwin);
   refresh($logwin);
-    
   close(IFLOG);
+
 }
 
 
@@ -1631,10 +1479,8 @@ $fileold=(-s "$iflog");
 }
 
 
-###############################################################################
 # Die schwachsinnige Internetschreibweise von fido Addressen (die ifcico
 # benutzt) aendern
-
 sub convftn {
 
 @tmp=split(/:/, $_[0]);
@@ -1649,9 +1495,7 @@ if($_[1] !~ /z2./) {
 }
 
 
-###############################################################################
 # show outbound
-
 sub show_outbound { 
 
 local(@outbound, $laenge);
@@ -1662,7 +1506,7 @@ while (<IFSTAT>) {
 }      
 $laenge = @outbound;
 
-$outbwin = subwin(21, 60, 2, 10);
+$outbwin = newwin(21, 60, 2, ($COLS - 60) / 2);
 move($outbwin, 1, 1);
 attron($outbwin, COLOR_PAIR(3));
 addstr($outbwin, "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ");
@@ -1676,35 +1520,112 @@ box($outbwin, 0, 0);
 attron($outbwin, COLOR_PAIR(5));
 addstr($outbwin, 0, 25, " Outbound ");
 attron($outbwin, COLOR_PAIR(4));
-move(24, 79);
+&mcnru;
 refresh($outbwin);
 
-nodelay(0);
 getch();
-nodelay(1);
 
 clear($outbwin);
 refresh($outbwin);
 
-neuaufbau;
+&touchall("r");
 
 }
 
 
-###############################################################################
-# poll uplink
-
+# Uplinks Anrufen
 sub poll_uplink {
 
-&convftn($ftnuplink, $uplink);
-system("echo > $tmpvz/gff.bsy && $ifcicocmd -I$ifconfig -r 1 $uplink && rm -f $tmpvz/gff.bsy &");
+local($laenge,@win,$i,$ii,$iii,$x);
+
+$laenge = @ftnuplinks;
+if($laenge > 1) {
+
+  $nach_rechts=0; $nach_links=0; $aktion="";
+  
+  $x=$laenge + 2; $b=38;
+  $win=newwin($x, 40, 8, ($COLS - 41) / 2);
+  
+  attron($win, COLOR_PAIR(7));
+  addstr($win, "                                                                                                                                                                                          ");
+  
+  $ii=1; 
+  for($i=0; $i < @ftnuplinks; $i++) {
+     $win[$ii] = $ftnuplinks[$i]; $ii++;
+  }
+  
+  sbalk($win, $win[1], 1, 1, 1, 0, $b);
+   
+  $ii=2;
+  for($i=0; $i < @ftnuplinks; $i++) {     
+  sbalk($win, $win[$ii], $ii, 1, 0, 0, $b); $ii++;
+  }
+  
+  attron($win, COLOR_PAIR(8));
+
+  box($win, 0, 0);
+  refresh($win); 
+  
+  $z=1;
+  for($i=0; $i = 1; $ii++) {
+
+     $ch = getch();
+     if($ch == KEY_DOWN || $ch == KEY_UP || $ch == KEY_LEFT || $ch == KEY_RIGHT) {
+       if($ch == KEY_DOWN) {
+         if($z ne $laenge) {
+           $z++;
+         }
+         $n=$z - 1;
+         sbalk($win, $win[$z], $z, 1, 1, $win[$n], $b);
+       }
+    
+       if($ch == KEY_UP) {
+         if($z ne 1) { 
+            $z--;  
+         }
+         $n=$z + 1;
+         sbalk($win, $win[$z], $z, 1, -1, $win[$n], $b);
+       }   
+
+     } else {
+  
+       $zn = unpack("C", $ch);
+   
+       if($zn eq 27) {
+         $raushier=1;
+         last;
+       }
+
+       if($zn eq 10) {
+         $aktion=$win[$z];
+         $raushier=1;
+         last;
+       }
+     }
+  if($ch eq -1) {
+    &akzeit; 
+  } else {
+    refresh($win);
+  }
+  
+  }  
+} else {
+  $aktion=$ftnuplinks[0];
+}
+
+touchwin($logwin);
+refresh($logwin);
+
+if($aktion ne "") {
+  local($aktion,$muell)=split(/ +/, $aktion);
+  &convftn($aktion, $uplink);
+  system("echo > $tmpvz/gff.bsy && $ifcicocmd -I$ifconfig -r 1 $uplink && rm -f $tmpvz/gff.bsy &");
+} 
 
 }
 
-
-###############################################################################
+ 
 # letzte (ausgehende) Anrufe einblenden
-
 sub letzte_anrufe {
 
 &zeit_holen;
@@ -1731,33 +1652,17 @@ move($lcallwin, 1, 1);
 $laenge = @iflogentrys; $z=0;
 attron($lcallwin, COLOR_PAIR(2));
 
-if($bsmodus eq 0) {
-  if($laenge > 5) {
-    for($i=$laenge - 5; $i < $laenge; $i++) {
-    addstr($lcallwin, $z, 0, "$iflogentrys[$i]");
-    $z++;
-    }
-  } else {
-    shift(@iflogentrys);
-    for($i=0; $i < 5; $i++) {
-    addstr($lcallwin, $z, 0, "$iflogentrys[$i]");
-    $z++;
-    }
+if($laenge > 11) {
+  for($i=$laenge - 11; $i < $laenge; $i++) {
+  addstr($lcallwin, $z, 0, "$iflogentrys[$i]");
+  $z++;
   }
 } else {
-  if($laenge > 10) {
-    for($i=$laenge - 10; $i < $laenge; $i++) {
-     addstr($lcallwin, $z, 0, "$iflogentrys[$i]");
-    $z++;
-    }
-  } else {
-    shift(@iflogentrys);
-    for($i=0; $i < 10; $i++) {
-    addstr($lcallwin, $z, 0, "$iflogentrys[$i]");
-    $z++;
-    }
+  for($i=0; $i < 11; $i++) {
+  addstr($lcallwin, $z, 0, "$iflogentrys[$i]");
+  $z++;
   }
-}
+}  
 
 
 attron($lcallwin, COLOR_PAIR(4));
@@ -1767,9 +1672,7 @@ refresh($lcallwin);
 }
 
 
-###############################################################################
 # letzte Anrufe (eingehend) einblenden
-
 sub letzte_i_anrufe {
 
 local(@s, @pids, @t, @u, @v, @r, @iclogins, $found);
@@ -1783,6 +1686,7 @@ while(<IFLOGFILE>) {
      }
 }
 
+
 for(@s) {
    if($found eq 1) {
      @t=split(/\[/, $_);
@@ -1794,6 +1698,7 @@ for(@s) {
      $found=1;
    }
 }
+
 
 $x=0; $icname="";
 
@@ -1809,11 +1714,15 @@ for $pid (@pids) {
 	         $address="$v[0]:$v[1]";
 	       } else {
    	         @t=split(/ +/, $i);
-	         $t[8] =~ s/\@fidonet|\@Fidonet//;
-	         @u=split(/\x0A/, $t[8]);
+ 		 if($grr eq "hmpf") {
+ 		   $t[8] =~ s/\@fidonet|\@Fidonet//;
+	           @u=split(/\x0A/, $t[8]);
+		 } else {
+ 		   $t[7] =~ s/\@fidonet|\@Fidonet//;
+	           @u=split(/\x0A/, $t[7]);
+		 }
    	         @v=split(/:/, $t[2]);
 	         $address="$v[0]:$v[1]";
-
 	       }
 	     }
              if($i =~ /remote operator/) {
@@ -1827,35 +1736,20 @@ $iclogins[$x]=$icname; $x++;
 }
 
 
-
-$muell=shift(@iclogins); 
+#$muell=shift(@iclogins); 
 
 $y=0; $laenge=@iclogins; $x=0; $w=0;
 
 
-if($bsmodus eq 0) {
-  if($laenge > 5) {
-    for($x=$laenge - 5; $x < $laenge; $x++) {
-       addstr($licallwin, $w, 0, "$iclogins[$x]    "); 
-        $w++;
-    }
-  } else {
-    for($x=0; $x < 5; $x++) {
-        addstr($licallwin, $w, 0, "$iclogins[$x]    "); 
-        $w++;
-    }
+if($laenge > 11) {
+  for($x=$laenge - 11; $x < $laenge; $x++) {
+     addstr($licallwin, $w, 0, "$iclogins[$x]    "); 
+     $w++;
   }
 } else {
-  if($laenge > 10) {
-    for($x=$laenge - 10; $x < $laenge; $x++) {
-       addstr($licallwin, $w, 0, "$iclogins[$x]    "); 
-        $w++;
-    }
-  } else {
-    for($x=0; $x < 10; $x++) {
-        addstr($licallwin, $w, 0, "$iclogins[$x]    "); 
-        $w++;
-    }
+  for($x=0; $x < 11; $x++) {
+     addstr($licallwin, $w, 0, "$iclogins[$x]    "); 
+     $w++;
   }
 }
   
@@ -1867,27 +1761,19 @@ close(IFLOGFILE);
 }
 
 
-###############################################################################
 # Mailreader Starten
-
 sub mailreader_go {
-
-logger("starte Mailreader... \($mailreader\) &");
 
 endwin();
 
-system("setterm -cursor on");
 system("$mailreader");
-system("setterm -cursor off");
 
 neuaufbau;
 
 }
 
 
-###############################################################################
 # Monate  Englisch -=> Deutsch 
-
 sub translatemonth {
 
 $zeit =~ s/Mon/Montag/;
@@ -1913,9 +1799,7 @@ $zeit =~ s/Dec/Dezember/;
 }
 
 
-###############################################################################
 # Uhrzeit aktualisieren
-
 sub akzeit { 
 
 &zeit_holen;
@@ -1923,346 +1807,21 @@ sub akzeit {
 attron(COLOR_PAIR(1));
 
 if ($debugmode eq "jup") {
-   addstr(stdscr, 0, 71, "$akzeitd"); }
-   else { addstr(stdscr, 0, 74, "$akzeit"); }
+   addstr(stdscr, 0, $COLS - 9, "$akzeitd"); }
+   else { addstr(stdscr, 0, $COLS - 6, "$akzeit"); }
 
-if($bsmodus eq 0) {    
-  move(24,79);
-} else {
-  move(49,79);
-}
+&mcnru;
 
 }
 
 
-###############################################################################
-# Statistikmail
-
-sub daily {
-
-local(@Datum, @Uhr, @Uhrzeit);
-
-$digitalanrufe=0; $analoganrufe=0;
-
-$zeit  = time(); 
-$zeit  = localtime($zeit);
-@Datum = split(/ +/, $zeit); 
-
-&translatemonth;
-
-@Uhr = split(/ +/,$zeit);
-@Uhrzeit = split(/:/,$Uhr[3]);
-
-$Datum[2]--;
-
-if (length($Datum[2]) eq 1) { 
-   $soso = " $Datum[2]"; 
-   $fmist = "0$Datum[2]";
-} else { 
-   $soso = "$Datum[2]"; 
-   $fmist = "$Datum[2]"; 
-}
-
-if (length($Datum[2]) ne 1)  { $grrr = "hmpf"; } else { $grrr = "ok"; }
-
-$akdat = "$Datum[1] $soso"; 
-$akdatfgate = "$Datum[1] $fmist";
-
-# do..... what?
-#
-if($dailyuse eq 1) {
-  &detailierter_bericht; 
-  if ($dailylog eq 1) { &daily_log; }
-  if ($send_rfc_mail eq 1) { &send_system_mail } 
-}
-
-}
-
-
-###############################################################################
-# Bericht mit allen Details
-
-sub detailierter_bericht {
-
-$anfang = time;
-
-&grep_logfiles;
-
-writem($report, " \n");
-
-writem($report, "Halloele...\n\n");
-
-writem($report, "Statistik fuer $Uhr[0], den $Uhr[2] $Uhr[1] $Uhr[4] -- Erstellt um $Uhrzeit[0]:$Uhrzeit[1] \n\n");
-writem($report, "ISDN Anruf(e)   : $digitalanrufe\n");
-writem($report, "analoge Anruf(e): $analoganrufe\n");
-
-writem($report, "--------------------\n");
-
-writem($report, "Total           : $totale_anrufe\n\n");
-writem($report, "dabei wurden\n");
-writem($report, "$gesendetebytes Bytes in $gesendete_files files gesendet\n");
-writem($report, "$empfangenebytes Bytes in $empfangene_files files empfangen\n\n");
-
-writem($report, "Mail Statistik:\n");
-writem($report, "---------------\n");
-writem($report, "verarbeitete Mails  : $empfangene_mails in $empfangene_ungepacktekbytes Kbytes (ungepackt)\n");
-writem($report, "verarbeitete Pkts   : $empfangene_pkts\n");
-writem($report, "Toss-Geschwindigkeit: $tosser_maildurchsatz[0] Mails/s (durchschnitt)\n\n"); 
-writem($report, "Wer hat wieviel bekommen:\n");
-writem($report, "-------------------------\n");
-
-$z=-1; for(@hotzenplotz) { if ($z ne "-1") { 
-$~=REPORT; writem($report, "$_ $sizes[$z] bytes\n");
-
-$werwas=$werwas . "$_ $sizes[$z] bytes\n"; $z++; } else { $z++; } }
-
-writem($report, "\n\n");
-writem($report, "Logfile fuer eingehende Anrufe:\n");
-writem($report, "-------------------------------\n");
-for (@loginx) { writem($report, "$_\n"); } 
-
-writem($report, "\nLogfile fuer ausgehende Anrufe:\n");
-writem($report, "-------------------------------\n");
-
-for $i (@ausgehendeanrufelogfile) { writem($report, "$i\n"); }
-writem ($report, "\n\n");
-
-$ende = time; $laufzeit = $ende - $anfang;
-
-writem($report, "Das Erstellen dieser Nachricht dauerte $laufzeit Sekunden.\n\n\n");
-
-if ($testmode ne "ja") { &writemail; }
-
-}
-
-
-
-###############################################################################
-# Mail an Dingens senden
-
-sub send_system_mail {
-
-open (SYSTEMMAIL, "| mail -s Mail_from_Daily $send_an_wen");
-print SYSTEMMAIL "$report"; close (SYSTEMMAIL); 
-
-} 
-
-
-###############################################################################
-# Aktivitaeten mitloggen
-
-sub daily_log { 
-
-open (DAILYLOG, ">>$dailylogfile");
-
-print DAILYLOG "$report";
-print DAILYLOG "======================================================================";
-
-close (DAILYLOG);
-
-} 
-
-
-###############################################################################
-# ?
-
-sub writem { $_[0]=$_[0] . $_[1]; }
-
-
-###############################################################################
 # Hilfe
-
 sub help {
 
-print "gff & daily $version\n";
-print "FixMe!\n";
 print "Folgende Parameter sind moeglich:\n";
-print "--statistik   Statistikmail erzeugen\n";
-print "--bw          Schwarz-Weis modus\n\n";
-
-}
-
-
-###############################################################################
-# Ergebniss versenden
-
-sub writemail {
-
-$tmpfile="$tmpvz/daily.tmp";
-
-open (REPORT, ">$tmpfile") || die "Konnte $tmpfile nicht oeffnen!";
-print REPORT "$report"; close (REPORT); 
-
-system("$writeem -oa $absenderaka -da $empfaengeraka -on $boxname -dn $empfaenger -a $brett -s $titel -mf $tmpfile -tw $outpkt");
-system("$tosscommand"); unlink("$tmpfile"); 
-
-} 
-
-
-###############################################################################
-# such .. hasso .. such
-
-sub grep_logfiles {
-
-# Suche alle Eintraege die den aktuellen Tag betreffen aus dem $logfile
-#
-&greppy("$logfile", "$akdat", " ");
-
-
-# suche nach empfangenen Bytes
-#
-$empfangene_files=0; $empfangenebytes=0;
-for $i (@greppyergebniss) {
-if ($i =~ /zmodem receive: /) { $empfangene_files++; @blubby=split(/ /, $i);
-if ($grrr eq "hmpf") { $empfangenebytes=$empfangenebytes + $blubby[8]; } else 
-{ $empfangenebytes=$empfangenebytes + $blubby[9]; } } }
- 
-
-# suche nach gesendeten Bytes
-#
-$gesendete_files=0; $gesendetebytes=0;
-for $i (@greppyergebniss) { 
-if ($i =~ /zmodem send "/) { $gesendete_files++; @blubby=split(/ /, $i);
-if ($grrr eq "hmpf") { $blubby[10] =~ s/\(//; } else { $blubby[11] =~ s/\(//; } 
-if ($grrr eq "hmpf") { $gesendetebytes=$gesendetebytes + $blubby[10]; } else
-{ $gesendetebytes=$gesendetebytes + $blubby[11]; } } }
-
-
-# eingehende Anrufe 
-#
-
-$found=0;
-
-for $i (@greppyergebniss) { 
-
-if ($found eq 1) { @tmpy=split(/\[/, $i); 
-                   @tmp=split(/\]/, $tmpy[1]);
-		   push(@pids, $tmp[0]);
-		   $found=0; 
-		   if ($i =~ /ifcico.ttyI2/) { $digitalanrufe++; }
-		   if ($i =~ /ifcico.ttyS1/) { $analoganrufe++; }
-		   }
-		    
-if ($i =~ /Eingehender Anruf/) { $found=1; }  }
-$z=0; $feddich=0;
-for $pidyea (@pids) {
-for (@greppyergebniss) { 
-  if (/\[$pidyea\]/) 
-     { 
-     if (/remote operator/) 
-        { 
-        $tmp=$loginx[$z]; $loginx[$z]=""; 
-	@blub=split(/ /, $_);
-	if ($grrr eq "hmpf") 
-	   {
-	   $tmp1="$blub[0] $blub[1] $blub[2] Anruf von $blub[7] $blub[8] $blub[9] $blub[10]";	
-	   }
-	   else
-	   {
-	   $tmp1="$blub[0] $blub[1] $blub[2] $blub[3] Anruf von $blub[8] $blub[9] $blub[10] $blub[11]";	
-	   }
-	chop($tmp1); chop($tmp1); chop($tmp1);
-	$loginx[$z]=$loginx[$z] . $tmp1; $loginx[$z]=$loginx[$z] . " ($tmp)"; 
-	}	
-	elsif(/remote  address: 2:24/)  
-	     { 
-	     if ($feddich ne 1) 
-	        { 
-	        @tmp = split(/ /, $_);
-		if ($grrr eq "hmpf") 
-		{
-		chomp($tmp[8]);
-	        $loginx[$z]=$loginx[$z] . $tmp[8];
-                } 
-                else
-		{
-		chomp($tmp[9]);
-	        $loginx[$z]=$loginx[$z] . $tmp[9];
-	        }
-		$feddich=1; 
-		} 
-	     }
-	     
-} } $z++; $feddich=0;}
-
-
-# Auschnitte der Logfiles erzeugen
-# ausgehend
-#
-&greppy("$logfile", "$akdat", "ifcico");
-
-for $i (@greppyergebniss) {
-if ($i =~ /calling /) { @blub=split(/ /, $i);
-if ($grrr eq "hmpf") {
-
-$tempy = "$blub[0] $blub[1] $blub[2] $blub[5] $blub[6]";
-$temp1 = "$blub[7] $blub[8] $blub[9] $blub[10] $blub[11] $blub[12] $blub[13]";
-($temp2, $temp3) = split(/,/, $temp1, 2);
-$temp2 =~ s/\(//; chomp($tempy);
-$tempy = "$tempy  $temp2";
-push(@ausgehendeanrufelogfile, $tempy); }
-
-else {
-
-$tempy = "$blub[0] $blub[1] $blub[2] $blub[3] $blub[6] $blub[7]";
-$temp1 = "$blub[8] $blub[9] $blub[10] $blub[11] $blub[12] $blub[13] $blub[14]";
-($temp2, $temp3) = split(/,/, $temp1, 2);
-$temp2 =~ s/\(//; chomp($tempy);
-$tempy = "$tempy  $temp2";
-push(@ausgehendeanrufelogfile, $tempy); } } }
-
-
-# Mailstatistik 
-#
-&greppy("$fgatelogfile", "$akdatfgate", "ftntoss msgs processed", " mail\, ");
-
-for $i (@greppyergebniss) { @blub = split(/ /, $i);
-$empfangene_mails=$empfangene_mails + $blub[6]; }
-
-&greppy("$fgatelogfile", "$akdatfgate", "ftntoss pkts processed", "Kbyte\/s");
-
-$tosser_zaehler=0;
-
-for $i (@greppyergebniss) { @blub = split(/ /, $i);
-$blub[6] =~ s/,//; $empfangene_pkts=$empfangene_pkts + $blub[6];
-$empfangene_ungepacktekbytes=$empfangene_ungepacktekbytes + $blub[7];
-$tosser_mail=$tosser_mail + $blub[12]; $tosser_zaehler++; }
-
-$tosser_temp=$tosser_mail / $tosser_zaehler;
-@tosser_maildurchsatz = split(/\./, $tosser_temp);
-
-$totale_anrufe = $digitalanrufe + $analoganrufe;
-
-
-# Welcher Point hat wieviel bekommen
-#
-&greppy("$fgatelogfile", "$akdatfgate", "ftnpack archiving packet ");
-for $i (@greppyergebniss) { @blub=split(/ /, $i); push (@unsorted, $blub[8]); }
-@sort=sort(@unsorted); $sorted[0]=$sort[0]; $baeh=0;
-for $i (@sort) { 
-if ($i ne $sorted[$baeh]) { push(@sorted, $i); $baeh++; } }
-
-@hotzenplotz=@sorted;
-
-$z=0;
-for (@sorted) {
-$sorted[$z] =~ s/\:/\\:/;
-$sorted[$z] =~ s/\//#/;
-$sorted[$z] =~ s/#/\\ /;
-$sorted[$z] =~ s/ /\//;
-$z++; }
-
-@dingel=@sorted;
-
-$z=0; shift(@dingel);
-for(@dingel) {
-@haehae=""; 
-for $zeile (@greppyergebniss) { 
-if ($zeile =~ / $_ /) { push (@haehae, $zeile); } }
-$roemer=0;
-for (@haehae) { @blub=split(/ /, $_);  
-$blub[6] =~ s/\(//; $blub[6] =~ s/\)//; $blub[6] =~ s/b//; 
-$roemer=$roemer + $blub[6]; } push(@sizes, $roemer); $z++; }  
+print "-c    Pfad der Konfigurationsdatei\n";
+print "-bw   Schwarz-Weis modus\n";
+print "-h    Hilfe\n\n";
 
 }
 
@@ -2276,87 +1835,52 @@ $sigtermed = $sig;
 }
 
 
-# 25 <-> 50 Zeilen umschaltung
-sub zeilenmodus_umschalten {
-
-if($bsmodus eq 0) { 
-  if($LINES eq 50) {
-    $bsmodus=1;
-    clear();
-    refresh();
-    machma;
-    iflogfile_aufbereiten("r");
-    letzte_anrufe;
-    letzte_i_anrufe;
-  }
-} elsif($bsmodus eq 1) {
-  $bsmodus=0;
-  clear();
-  refresh();
-  machma;
-  iflogfile_aufbereiten("r");
-  letzte_anrufe;
-  letzte_i_anrufe;
-}
-
-}
-
-
-###############################################################################
-# Routine zum Durchsuchen von Logfiles, extrem lahm, extrem baeh
-# extrem verbesserungswuerdig
-#
-# ToDo: Schneller machen (am besten neu schreiben)
-
-sub greppy 
-{
-@dingdong=""; @dingdong1=""; @dingdong2=""; $raehmelaem="";
-open (FICK, "$_[0]") || die "Konnte $_[0] nicht oeffnen\n";
-while (<FICK>) {
-/$_[1]/ ? @dingdong = (@dingdong , $_) : $dingdong[1]=$dingdong[1]; }
-  
-if ($_[2] ne "") {
-foreach $raehmelaem (@dingdong) 
-{
-if ($raehmelaem =~ /$_[2]/) { @dingdong1 = (@dingdong1 , $raehmelaem) } } }
-
-if ($_[3] ne "") {
-foreach $raehmelaeme (@dingdong1) {
-if ($raehmelaeme =~ /$_[3]/) { @dingdong2 = (@dingdong2 , $raehmelaeme) }
-@greppyergebniss = @dingdong2; } } else { @greppyergebniss = @dingdong1; }
-close (FICK);
-}
-
-
 # -=> Hauptprogramm <=- #######################################################
 
+local($i,$z);
 
-if ($ARGV[0] ne "") {
-   if ($ARGV[0] =~ /--statistik/) { 
-      &config_auslesen; 
-      &daily; 
-      exit(0);
+for($i=0; $i < @ARGV; $i++) {
+   if($ARGV[$i] =~ /--help|-h/) {
+     &help;
+     exit(0);
    }
-   if ($ARGV[0] =~ /--help|-h/) { 
-      &help; 
-      exit(0);
-   } 
+   if($ARGV[$i] =~ /-c/) {
+     $z=$i + 1;
+     $config=$ARGV[$z];
+   }
+   if($ARGV[$i] =~ /-bw|--bw/) {
+     $bw=1;
+   } else { 
+     $bw=0;
+   }
 }
 
-if($ARGV[0] =~ /-bw|--bw/) { $bw=1; } else { $bw=0; }
+
+if($config eq "") {
+  $config = $ENV{'GFFCFG'};
+} 
+
+if($config eq "") {
+  print "\nKann die Konfigurationsdatei nicht finden.\n";
+  &help;
+  print "Exit.\n";
+  exit(100);
+} 
+
 
 #&hello;
 
 $SIG{INT} = \&sighdnl;
 $SIG{TERM} = \&sighdnl;
+$SIG{WINCH} = \&sighdnl;
 
 config_auslesen;
+
 
 #system("setterm -cursor off");
 
 machma;
 
-iflogfile_aufbereiten;
 
 if($systemart eq 0) {
   letzte_anrufe;
@@ -2365,7 +1889,7 @@ if($systemart eq 0) {
   letzte_anrufe("p");
 }
 
-
+sysop_mail;
 
 halfdelay(1); 
 noecho(); 
@@ -2379,7 +1903,7 @@ while($ende ne 1) {
      $eingabe=getch();
      
      if($eingabe ne -1) {
-       if($eingabe eq 265 || $eingabe eq "h") { nocbreak(); &hilfe; cbreak(); halfdelay(1); }
+       if($eingabe eq 265 || $eingabe eq "h") { &hilfe; halfdelay(1); }
        if($eingabe eq "r") { nocbreak(); &request; cbreak(); halfdelay(1); }
        if($eingabe eq "q" || $eingabe eq "x") { &ausgang }
        if($eingabe eq "c") { nocbreak(); &call_node; cbreak(); halfdelay(1); }
@@ -2389,13 +1913,8 @@ while($ende ne 1) {
        if($eingabe eq "m") { &mailreader_go }
        if($eingabe eq "l") { nocbreak(); &iflogfile_scrollen; cbreak(); halfdelay(1); }
        if($eingabe eq "274") { &menu; cbreak(); halfdelay(1); }
-       if($eingabe eq "d") {
-         move(24, 77); addstr("D"); refresh(); 
-         &daily;
-         move(24, 77); addstr(" "); refresh(); 
        }
-     }
-
+     
      $zmi++; $cpuz++; $cpul++;
 
      if($zmi eq $dley) {
@@ -2407,7 +1926,8 @@ while($ende ne 1) {
      if($cpul eq $lcalls) {  
        if($useautotoss eq 1) {
          autotoss;
-       }	 
+       }
+       &sysop_mail;	 
        if($systemart eq 0) {
          letzte_anrufe;
          letzte_i_anrufe;
@@ -2426,17 +1946,9 @@ while($ende ne 1) {
            refresh($letzte_anrufe);
          }
        }
-       if($dailyuse eq 1) {
-         if($dailytime eq $akzeit) {
-           move(24,78); addstr("D "); refresh();
-           &daily;
-           move(stdscr, 24,78); addstr(stdscr, "  "); refresh();
-         }
-       }    
     } 
     if($sigtermed) {
       last;
-      
     }
 }
 
